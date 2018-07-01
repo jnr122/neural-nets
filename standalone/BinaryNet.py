@@ -9,13 +9,13 @@ def nonlin(x, deriv=False):
 
 
 # input dataset
-X = np.array([[1, 0, 3],
+X = np.array([[1, 0, 1],
               [1, 0, 0],
-              [2, 0, 1],
+              [0, 0, 1],
               [1, 1, 1]])
 
 # output dataset
-y = np.array([[3, 1, 2, 1]]).T
+y = np.array([[1, 0, 0, 1]]).T
 
 # seed random numbers to make calculation
 # deterministic (just a good practice)
