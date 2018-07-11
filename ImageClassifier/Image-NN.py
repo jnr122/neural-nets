@@ -3,6 +3,10 @@ import tensorflow as tf
 import numpy as np
 
 # Matplotlib to plot info to show our results
+import matplotlib
+matplotlib.use('TkAgg')
+
+
 import matplotlib.pyplot as plt
 
 # OS to load files and save checkpoints
@@ -37,63 +41,63 @@ print(train_data.shape)
 
 eval_data = np.reshape(eval_data, (-1, image_height, image_width, color_channels))
 
-# Load cifar data from file
-
-image_height = 32
-image_width = 32
-
-color_channels = 3
-
-model_name = "cifar"
-
-
-def unpickle(file):
-    import pickle
-    with open(file, 'rb') as fo:
-        dict = pickle.load(fo, encoding='bytes')
-    return dict
-
-
-cifar_path = './cifar-10-batches-py/'
-
-train_data = np.array([])
-train_labels = np.array([])
-
-# Load all the data batches.
-for i in range(1, 6):
-    data_batch = unpickle(cifar_path + 'data_batch_' + str(i))
-    train_data = np.append(train_data, data_batch[b'data'])
-    train_labels = np.append(train_labels, data_batch[b'labels'])
-
-# Load the eval batch.
-eval_batch = unpickle(cifar_path + 'test_batch')
-
-eval_data = eval_batch[b'data']
-eval_labels = eval_batch[b'labels']
-
-# Load the english category names.
-category_names_bytes = unpickle(cifar_path + 'batches.meta')[b'label_names']
-category_names = list(map(lambda x: x.decode("utf-8"), category_names_bytes))
-
-
-# TODO: Process Cifar data
-
-def process_data(data):
-    float_data = np.array(data, dtype=float) / 255.0
-
-    reshaped_data = np.reshape(float_data, (-1, image_height, image_width, color_channels))
-
-    reshaped_data = np.reshape(float_data, (-1, color_channels, image_height, image_width))
-
-    transposed_data = np.transpose(reshaped_data, [0, 2, 3, 1])
-    plt.imshow(transposed_data[0])
-
-    return transposed_data
-
-
-train_data = process_data(train_data)
-
-eval_data = process_data(eval_data)
+# # Load cifar data from file
+#
+# image_height = 32
+# image_width = 32
+#
+# color_channels = 3
+#
+# model_name = "cifar"
+#
+#
+# def unpickle(file):
+#     import pickle
+#     with open(file, 'rb') as fo:
+#         dict = pickle.load(fo, encoding='bytes')
+#     return dict
+#
+#
+# cifar_path = './cifar-10-batches-py/'
+#
+# train_data = np.array([])
+# train_labels = np.array([])
+#
+# # Load all the data batches.
+# for i in range(1, 6):
+#     data_batch = unpickle(cifar_path + 'data_batch_' + str(i))
+#     train_data = np.append(train_data, data_batch[b'data'])
+#     train_labels = np.append(train_labels, data_batch[b'labels'])
+#
+# # Load the eval batch.
+# eval_batch = unpickle(cifar_path + 'test_batch')
+#
+# eval_data = eval_batch[b'data']
+# eval_labels = eval_batch[b'labels']
+#
+# # Load the english category names.
+# category_names_bytes = unpickle(cifar_path + 'batches.meta')[b'label_names']
+# category_names = list(map(lambda x: x.decode("utf-8"), category_names_bytes))
+#
+#
+# # TODO: Process Cifar data
+#
+# def process_data(data):
+#     float_data = np.array(data, dtype=float) / 255.0
+#
+#     reshaped_data = np.reshape(float_data, (-1, image_height, image_width, color_channels))
+#
+#     reshaped_data = np.reshape(float_data, (-1, color_channels, image_height, image_width))
+#
+#     transposed_data = np.transpose(reshaped_data, [0, 2, 3, 1])
+#     plt.imshow(transposed_data[0])
+#
+#     return transposed_data
+#
+#
+# train_data = process_data(train_data)
+#
+# eval_data = process_data(eval_data)
 
 
 # TODO: The neural network
@@ -142,12 +146,12 @@ class ConvNet:
 
 # TODO: initialize variables
 
-training_steps = 200
+training_steps = 2
 batch_size = 64
 
 path = "./" + model_name + "-cnn/"
 
-load_checkpoint = False
+load_checkpoint = True
 
 performance_graph = np.array([])
 
@@ -159,7 +163,7 @@ dataset = dataset.shuffle(buffer_size=train_labels.shape[0])
 dataset = dataset.batch(batch_size)
 dataset = dataset.repeat()
 
-dataset_iterator = dataset.make_one_shot_iterator()
+dataset_iterator = dataset.make_initializable_iterator()
 next_element = dataset_iterator.get_next()
 
 cnn = ConvNet(image_height, image_width, color_channels, 10)
@@ -187,17 +191,15 @@ with tf.Session() as sess:
         sess.run((cnn.train_operation, cnn.accuracy_op),
                  feed_dict={cnn.input_layer: batch_inputs, cnn.labels: batch_labels})
 
-        if step % 10 == 0:
-            performance_graph = np.append(performance_graph, sess.run(cnn.accuracy))
-
         if step % 1000 == 0 and step > 0:
             current_acc = sess.run(cnn.accuracy)
+
             print("Accuracy at step " + str(step) + ": " + str(current_acc))
             print("Saving checkpoint")
             saver.save(sess, path + model_name, step)
 
-        print("Saving final checkpoint for training session.")
-        saver.save(sess, path + model_name, step)
+    print("Saving final checkpoint for training session.")
+    saver.save(sess, path + model_name, step)
 
 # TODO: Display graph of performance over time
 
@@ -206,7 +208,39 @@ plt.figure().set_facecolor('white')
 plt.xlabel("Steps")
 plt.ylabel("Accuracy")
 
-tf.reset_default_graph()
-
 dataset = tf.data.Dataset.from_tensor_slices((train_data, train_labels))
+
+# Expand this box to check the final code for this cell.
+# TODO: Get a random set of images and make guesses for each
+with tf.Session() as sess:
+    checkpoint = tf.train.get_checkpoint_state(path)
+    saver.restore(sess, checkpoint.model_checkpoint_path)
+
+    indexes = np.random.choice(len(eval_data), 10, replace=False)
+
+    rows = 5
+    cols = 2
+
+    fig, axes = plt.subplots(rows, cols, figsize=(5, 5))
+    fig.patch.set_facecolor('white')
+    image_count = 0
+
+    for idx in indexes:
+        image_count += 1
+        sub = plt.subplot(rows, cols, image_count)
+        img = eval_data[idx]
+        if model_name == "mnist":
+            img = img.reshape(28, 28)
+        plt.imshow(img)
+        guess = sess.run(cnn.choice, feed_dict={cnn.input_layer: [eval_data[idx]]})
+        if model_name == "mnist":
+            guess_name = str(guess[0])
+            actual_name = str(eval_labels[idx])
+        else:
+            guess_name = category_names[guess[0]].decode('utf-8')
+            actual_name = category_names[eval_labels[idx]].decode('utf-8')
+        sub.set_title("G: " + guess_name + " A: " + actual_name)
+    plt.show()
+    plt.tight_layout()
+
 
