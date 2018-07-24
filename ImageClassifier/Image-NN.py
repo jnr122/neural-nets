@@ -53,30 +53,30 @@ class ConvNet:
 
 
 #MNIST
-image_height = 28
-image_width = 28
-
-color_channels = 1
-
-model_name = "mnist"
-
-mnist = tf.contrib.learn.datasets.load_dataset("mnist")
-
-train_data = mnist.train.images
-train_labels = np.asarray(mnist.train.labels, dtype=np.int32)
-
-eval_data = mnist.test.images
-eval_labels = np.asarray(mnist.test.labels, dtype=np.int32)
-
-category_names = list(map(str, range(10)))
-
-print(train_data.shape)
-
-train_data = np.reshape(train_data, (-1, image_height, image_width, color_channels))
-
-print(train_data.shape)
-
-eval_data = np.reshape(eval_data, (-1, image_height, image_width, color_channels))
+# image_height = 28
+# image_width = 28
+#
+# color_channels = 1
+#
+# model_name = "mnist"
+#
+# mnist = tf.contrib.learn.datasets.load_dataset("mnist")
+#
+# train_data = mnist.train.images
+# train_labels = np.asarray(mnist.train.labels, dtype=np.int32)
+#
+# eval_data = mnist.test.images
+# eval_labels = np.asarray(mnist.test.labels, dtype=np.int32)
+#
+# category_names = list(map(str, range(10)))
+#
+# print(train_data.shape)
+#
+# train_data = np.reshape(train_data, (-1, image_height, image_width, color_channels))
+#
+# print(train_data.shape)
+#
+# eval_data = np.reshape(eval_data, (-1, image_height, image_width, color_channels))
 
 
 #CIFAR-10
@@ -94,25 +94,45 @@ def unpickle(file):
         dict = pickle.load(fo, encoding='bytes')
     return dict
 
+#cifar 10
+# cifar_path = './cifar-10-batches-py/'
+#
+# train_data = np.array([])
+# train_labels = np.array([])
+#
+#
+# for i in range(1, 6):
+#     data_batch = unpickle(cifar_path + 'data_batch_' + str(i))
+#     train_data = np.append(train_data, data_batch[b'data'])
+#     train_labels = np.append(train_labels, data_batch[b'labels'])
 
-cifar_path = './cifar-10-batches-py/'
+
+#cifar 100
+cifar_path = './cifar-100-python/'
 
 train_data = np.array([])
 train_labels = np.array([])
 
+data_batch = unpickle(cifar_path + 'train')
+eval_batch = unpickle(cifar_path + 'test')
 
-for i in range(1, 6):
-    data_batch = unpickle(cifar_path + 'data_batch_' + str(i))
-    train_data = np.append(train_data, data_batch[b'data'])
-    train_labels = np.append(train_labels, data_batch[b'labels'])
+for key, value in data_batch.items():
+    print (key)
 
-eval_batch = unpickle(cifar_path + 'test_batch')
+train_data = np.append(train_data, data_batch[b'data'])
+train_labels = np.append(train_labels, data_batch[b'fine_labels'])
+
+
 
 eval_data = eval_batch[b'data']
-eval_labels = eval_batch[b'labels']
+eval_labels = eval_batch[b'fine_labels']
 
+meta = unpickle(cifar_path + 'meta')
 
-category_names_bytes = unpickle(cifar_path + 'batches.meta')[b'label_names']
+for key, value in meta.items():
+    print (key)
+
+category_names_bytes = unpickle(cifar_path + 'meta')[b'fine_label_names']
 category_names = list(map(lambda x: x.decode("utf-8"), category_names_bytes))
 
 
@@ -141,7 +161,7 @@ batch_size = 64
 
 path = "./" + model_name + "-cnn/"
 
-load_checkpoint = True
+load_checkpoint = False
 performance_graph = np.array([])
 
 #IMPLEMENT TRAINING LOOP
