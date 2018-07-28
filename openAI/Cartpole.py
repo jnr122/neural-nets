@@ -12,25 +12,25 @@ print(env.action_space)
 # TODO Make a random agent
 games_to_play = 200
 
-# for i in range(games_to_play):
-#     # Reset the environment
-#     obs = env.reset()
-#     episode_rewards = 0
-#     done = False
-#
-#     while not done:
-#         # Render the environment so we can watch
-#         env.render()
-#
-#         # Choose a random action
-#         action = env.action_space.sample()
-#
-#         # Take a step in the environment with the chosen action
-#         obs, reward, done, info = env.step(action)
-#         episode_rewards += reward
-#
-#     # Print episode total rewards when done
-#     print(episode_rewards)
+for i in range(games_to_play):
+    # Reset the environment
+    obs = env.reset()
+    episode_rewards = 0
+    done = False
+
+    while not done:
+        # Render the environment so we can watch
+        env.render()
+
+        # Choose a random action
+        action = env.action_space.sample()
+
+        # Take a step in the environment with the chosen action
+        obs, reward, done, info = env.step(action)
+        episode_rewards += reward
+
+    # Print episode total rewards when done
+    print(episode_rewards)
 
 # Close the environment
 #env.close()
@@ -120,64 +120,64 @@ saver = tf.train.Saver(max_to_keep=2)
 if not os.path.exists(path):
     os.makedirs(path)
 
-# with tf.Session() as sess:
-#     sess.run(init)
-#
-#     total_episode_rewards = []
-#
-#     # Create a buffer of 0'd gradients
-#     gradient_buffer = sess.run(tf.trainable_variables())
-#     for index, gradient in enumerate(gradient_buffer):
-#         gradient_buffer[index] = gradient * 0
-#
-#     for episode in range(training_episodes):
-#
-#         state = env.reset()
-#
-#         episode_history = []
-#         episode_rewards = 0
-#
-#         for step in range(max_steps_per_episode):
-#
-#             if episode % 100 == 0:
-#                 env.render()
-#
-#             # Get weights for each action
-#             action_probabilities = sess.run(agent.outputs, feed_dict={agent.input_layer: [state]})
-#             action_choice = np.random.choice(range(num_actions), p=action_probabilities[0])
-#
-#             state_next, reward, done, _ = env.step(action_choice)
-#             episode_history.append([state, action_choice, reward, state_next])
-#             state = state_next
-#
-#             episode_rewards += reward
-#
-#             if done or step + 1 == max_steps_per_episode:
-#                 total_episode_rewards.append(episode_rewards)
-#                 episode_history = np.array(episode_history)
-#                 episode_history[:, 2] = discount_normalize_rewards(episode_history[:, 2])
-#
-#                 ep_gradients = sess.run(agent.gradients, feed_dict={agent.input_layer: np.vstack(episode_history[:, 0]),
-#                                                                     agent.actions: episode_history[:, 1],
-#                                                                     agent.rewards: episode_history[:, 2]})
-#                 # add the gradients to the grad buffer:
-#                 for index, gradient in enumerate(ep_gradients):
-#                     gradient_buffer[index] += gradient
-#
-#                 break
-#
-#         if episode % episode_batch_size == 0:
-#
-#             feed_dict_gradients = dict(zip(agent.gradients_to_apply, gradient_buffer))
-#
-#             sess.run(agent.update_gradients, feed_dict=feed_dict_gradients)
-#
-#             for index, gradient in enumerate(gradient_buffer):
-#                 gradient_buffer[index] = gradient * 0
-#
-#         if episode % 100 == 0:
-#             saver.save(sess, path + "pg-checkpoint", episode)
-#             print("Average reward / 100 eps: " + str(np.mean(total_episode_rewards[-100:])))
+with tf.Session() as sess:
+    sess.run(init)
+
+    total_episode_rewards = []
+
+    # Create a buffer of 0'd gradients
+    gradient_buffer = sess.run(tf.trainable_variables())
+    for index, gradient in enumerate(gradient_buffer):
+        gradient_buffer[index] = gradient * 0
+
+    for episode in range(training_episodes):
+
+        state = env.reset()
+
+        episode_history = []
+        episode_rewards = 0
+
+        for step in range(max_steps_per_episode):
+
+            if episode % 100 == 0:
+                env.render()
+
+            # Get weights for each action
+            action_probabilities = sess.run(agent.outputs, feed_dict={agent.input_layer: [state]})
+            action_choice = np.random.choice(range(num_actions), p=action_probabilities[0])
+
+            state_next, reward, done, _ = env.step(action_choice)
+            episode_history.append([state, action_choice, reward, state_next])
+            state = state_next
+
+            episode_rewards += reward
+
+            if done or step + 1 == max_steps_per_episode:
+                total_episode_rewards.append(episode_rewards)
+                episode_history = np.array(episode_history)
+                episode_history[:, 2] = discount_normalize_rewards(episode_history[:, 2])
+
+                ep_gradients = sess.run(agent.gradients, feed_dict={agent.input_layer: np.vstack(episode_history[:, 0]),
+                                                                    agent.actions: episode_history[:, 1],
+                                                                    agent.rewards: episode_history[:, 2]})
+                # add the gradients to the grad buffer:
+                for index, gradient in enumerate(ep_gradients):
+                    gradient_buffer[index] += gradient
+
+                break
+
+        if episode % episode_batch_size == 0:
+
+            feed_dict_gradients = dict(zip(agent.gradients_to_apply, gradient_buffer))
+
+            sess.run(agent.update_gradients, feed_dict=feed_dict_gradients)
+
+            for index, gradient in enumerate(gradient_buffer):
+                gradient_buffer[index] = gradient * 0
+
+        if episode % 100 == 0:
+            saver.save(sess, path + "pg-checkpoint", episode)
+            print("Average reward / 100 eps: " + str(np.mean(total_episode_rewards[-100:])))
 
 # TODO Create the testing loop
 testing_episodes = 5
