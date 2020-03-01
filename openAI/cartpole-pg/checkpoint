@@ -1,3 +1,0 @@
-model_checkpoint_path: "pg-checkpoint-900"
-all_model_checkpoint_paths: "pg-checkpoint-800"
-all_model_checkpoint_paths: "pg-checkpoint-900"
