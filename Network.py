@@ -12,10 +12,11 @@ class Net:
         self.ls = ls
         self.lr = lr
         self.epochs = epochs
+        self.loss = 0
 
         # store sizes and instances of weights and biases
-        self.w_sizes = [(x.shape[1],ls), (self.ls, self.ls), (self.ls, y.shape[1])]
-        self.b_sizes = [(1,self.ls), (1, self.ls), (1, y.shape[1])]
+        self.w_sizes = [(self.x.shape[1],ls), (self.ls, self.ls), (self.ls, self.y.shape[1])]
+        self.b_sizes = [(1,self.ls), (1, self.ls), (1, self.y.shape[1])]
         self.ws = []
         self.bs = []
 
@@ -23,6 +24,11 @@ class Net:
         for w, b in zip(self.w_sizes, self.b_sizes):
             self.ws.append(np.random.randn(w[0], w[1]))
             self.bs.append(np.zeros((b[0], b[1])))
+
+        # unactivated/ activated outs
+        outs_shape = np.zeros((self.x.shape[0], self.bs[0].shape[1]))
+        self.zouts = [outs_shape] * 3
+        self.aouts = [outs_shape] * 3
 
     # training loop
     def train(self):
@@ -32,29 +38,29 @@ class Net:
             if x % 100 == 0:
                 print('Error for epoch ' + str(x) + ': ' + str(self.loss))
 
+    # feed forward
     def feed(self):
-        z1 = np.dot(self.x, self.ws[0]) + self.bs[0]   # feed layer 1
-        self.a1 = sig(z1)
-        z2 = np.dot(self.a1, self.ws[1]) + self.bs[1]  # feed layer 2
-        self.a2 = sig(z2)
-        z3 = np.dot(self.a2, self.ws[2]) + self.bs[2]  # feed output
+        self.zouts[0] = np.dot(self.x, self.ws[0]) + self.bs[0]
+        self.aouts[0] = sig(self.zouts[0])
+        self.zouts[1] = np.dot(self.aouts[0], self.ws[1]) + self.bs[1]
+        self.aouts[1] = sig(self.zouts[1])
+        self.zouts[2] = np.dot(self.aouts[1], self.ws[2]) + self.bs[2]
+        self.aouts[2] = softmax(self.zouts[2])
 
-        # get normalized max of output layer
-        self.a3 = softmax(z3)
-
+    # backprop
     def back(self):
-        self.loss = error(self.a3, self.y)
+        self.loss = error(self.aouts[2], self.y)
 
-        a3_delta = cross(self.a3, self.y)         # gradient for layer 3->2
+        a3_delta = cross(self.aouts[2], self.y)         # gradient for layer 3->2
         z2_delta = np.dot(a3_delta, self.ws[2].T)
-        a2_delta = z2_delta * dsig(self.a2)       # gradient for layer 2->1
+        a2_delta = z2_delta * dsig(self.aouts[1])       # gradient for layer 2->1
         z1_delta = np.dot(a2_delta, self.ws[1].T)
-        a1_delta = z1_delta * dsig(self.a1)       # gradient for layer 1
+        a1_delta = z1_delta * dsig(self.aouts[0])       # gradient for layer 1->in
 
         # calculate weight and bias adjustments
         adjustments = [(self.lr * np.dot(self.x.T, a1_delta),  self.lr * np.sum(a1_delta, axis=0)),
-                       (self.lr * np.dot(self.a1.T, a2_delta), self.lr * np.sum(a2_delta, axis=0)),
-                       (self.lr * np.dot(self.a2.T, a3_delta), self.lr * np.sum(a3_delta, axis=0))]
+                       (self.lr * np.dot(self.aouts[0].T, a2_delta), self.lr * np.sum(a2_delta, axis=0)),
+                       (self.lr * np.dot(self.aouts[1].T, a3_delta), self.lr * np.sum(a3_delta, axis=0))]
 
         # adjust
         for w,b,a in zip(self.ws, self.bs, adjustments):
@@ -64,7 +70,7 @@ class Net:
     def predict(self, data):
         self.x = data
         self.feed()
-        return self.a3.argmax()
+        return self.aouts[2].argmax()
 #
 #    END NETWORK IMPLEMENTATION
 #############################

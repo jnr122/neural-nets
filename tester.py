@@ -12,14 +12,14 @@ from sklearn.datasets import load_digits
 #
 def main():
     # hyperparams
-    epochs = 2000
+    epochs = 200
     lr = 0.02
     ls = 180
     size = 1000
 
     # collect data and split with sklearn
     # data types: "moons", "multi", "diabetes", "digit"
-    data_type = "multi"
+    data_type = "moons"
     features, labels = get_data(size, data_type)
     one_hot_target = pd.get_dummies(labels)
     train_x, x_val, train_y, y_val = train_test_split(features, one_hot_target, test_size=0.1, random_state=20)
@@ -74,6 +74,10 @@ def get_data(size, data_type):
         labels = labels.reshape(len(feature_set), 1)
         labels = [label[0] for label in labels]
         labels = np.array(labels)
+
+    else:
+        print("Invalid datatype")
+        exit(0)
 
     return feature_set, labels
 #
