@@ -13,10 +13,11 @@ class Net:
         self.lr = lr
         self.epochs = epochs
         self.loss = 0
+        self.connections = 3
 
         # store sizes and instances of weights and biases
         self.w_sizes = [(self.x.shape[1],ls), (self.ls, self.ls), (self.ls, self.y.shape[1])]
-        self.b_sizes = [(1,self.ls), (1, self.ls), (1, self.y.shape[1])]
+        self.b_sizes = [(1, self.ls), (1, self.ls), (1, self.y.shape[1])]
         self.ws = []
         self.bs = []
 
@@ -27,8 +28,8 @@ class Net:
 
         # unactivated/ activated outs
         outs_shape = np.zeros((self.x.shape[0], self.bs[0].shape[1]))
-        self.zouts = [outs_shape] * 3
-        self.aouts = [outs_shape] * 3
+        self.zouts = [outs_shape] * self.connections
+        self.aouts = [outs_shape] * self.connections
 
     # training loop
     def train(self):
@@ -40,12 +41,9 @@ class Net:
 
     # feed forward
     def feed(self):
-        self.zouts[0] = np.dot(self.x, self.ws[0]) + self.bs[0]
-        self.aouts[0] = sig(self.zouts[0])
-        self.zouts[1] = np.dot(self.aouts[0], self.ws[1]) + self.bs[1]
-        self.aouts[1] = sig(self.zouts[1])
-        self.zouts[2] = np.dot(self.aouts[1], self.ws[2]) + self.bs[2]
-        self.aouts[2] = softmax(self.zouts[2])
+        for i in range(self.connections):
+            self.zouts[i] = np.dot(self.x, self.ws[i]) + self.bs[i] if (i == 0) else np.dot(self.aouts[i-1], self.ws[i]) + self.bs[i]
+            self.aouts[i] = sig(self.zouts[i]) if (i != self.connections-1) else sig(self.zouts[i])
 
     # backprop
     def back(self):
@@ -70,7 +68,7 @@ class Net:
     def predict(self, data):
         self.x = data
         self.feed()
-        return self.aouts[2].argmax()
+        return self.aouts[self.connections-1].argmax()
 #
 #    END NETWORK IMPLEMENTATION
 #############################
