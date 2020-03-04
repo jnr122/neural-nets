@@ -12,14 +12,14 @@ from sklearn.datasets import load_digits
 #
 def main():
     # hyperparams
-    epochs = 200
+    epochs = 100
     lr = 0.02
-    ls = 180
+    ls = 128
     size = 1000
 
     # collect data and split with sklearn
     # data types: "moons", "multi", "diabetes", "digit"
-    data_type = "moons"
+    data_type = "multi"
     features, labels = get_data(size, data_type)
     one_hot_target = pd.get_dummies(labels)
     train_x, x_val, train_y, y_val = train_test_split(features, one_hot_target, test_size=0.1, random_state=20)
@@ -102,9 +102,11 @@ def test(model, x, y, data_type):
                 acc += 1
             else:
                 plt.scatter(xx[0], xx[1], c='r')
+
         elif data_type == "digit":
             if s == np.argmax(yy):
                 acc += 1
+
         elif data_type == "diabetes":
             ind += 1
             if s == np.argmax(yy):

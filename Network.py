@@ -51,6 +51,7 @@ class Net:
         adjustments = [[]] * 3
 
         # calculate gradients
+        # self.das[self.connections-1] = cross(self.aouts[self.connections-1], self.y)
         for i in range(self.connections-1, -1, -1):
             if i == self.connections-1:
                 self.das[i] = cross(self.aouts[i], self.y)
