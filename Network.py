@@ -48,7 +48,7 @@ class Net:
     def back(self):
         self.loss = error(self.aouts[self.connections-1], self.y)
 
-        adjustments = [[]] * 3
+        adjustments = [[]] * self.connections
 
         # calculate gradients
         # self.das[self.connections-1] = cross(self.aouts[self.connections-1], self.y)

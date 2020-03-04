@@ -12,7 +12,7 @@ from sklearn.datasets import load_digits
 #
 def main():
     # hyperparams
-    epochs = 100
+    epochs = 1000
     lr = 0.02
     ls = 128
     size = 1000
