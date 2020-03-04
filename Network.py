@@ -68,23 +68,23 @@ class Net:
 #############################
 #    START AUXILIARY FUNCS
 #
-def sig(s): return 1 / (1 + np.exp(-s)) # sigmoid
-def dsig(s): return s * (1 - s)          # sigmoid deriv
+def sig(outs): return 1 / (1 + np.exp(-outs))                # sigmoid
+def dsig(outs): return outs * (1 - outs)                        # sigmoid deriv
 def cross(pre, act): return (pre - act) / act.shape[0] # compute error by cost over num elements
 
 
 # normalize the outputs of the output layer so the outputs
 # represent confidence by probability
-def softmax(s):
-    exps = np.exp(s - np.max(s, axis=1, keepdims=True))
+def softmax(outs):
+    exps = np.exp(outs - np.max(outs, axis=1, keepdims=True))
     return exps / np.sum(exps, axis=1, keepdims=True)
 
 
 # for the sake of printing progress
 def error(pre, act):
-    n_samples = act.shape[0]
-    logp = - np.log(pre[np.arange(n_samples), act.argmax(axis=1)])
-    loss = np.sum(logp) / n_samples
+    sample_size = act.shape[0]
+    logp = - np.log(pre[np.arange(sample_size), act.argmax(axis=1)])
+    loss = np.sum(logp) / sample_size
     return loss
 #
 #    END AUXILIARY FUNCS
