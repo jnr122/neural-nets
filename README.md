@@ -1,2 +1,2 @@
 # scratch-net
-Working on building a network from scratch
+Trying to build a basic multi-classification network from scratch
