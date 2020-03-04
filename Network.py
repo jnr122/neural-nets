@@ -26,10 +26,9 @@ class Net:
             self.ws.append(np.random.randn(w[0], w[1]))
             self.bs.append(np.zeros((b[0], b[1])))
 
-        # unactivated/ activated outs
-        outs_shape = np.zeros((self.x.shape[0], self.bs[0].shape[1]))
-        self.zouts = [outs_shape] * self.connections
-        self.aouts = [outs_shape] * self.connections
+        # unactivated/ activated/ deltas shapes
+        self.zouts = self.aouts = ([np.zeros((self.x.shape[0], self.bs[0].shape[1]))] * self.connections)
+        self.dzs = self.das = ([np.zeros(self.x.shape)] * self.connections)
 
     # training loop
     def train(self):
@@ -47,18 +46,21 @@ class Net:
 
     # backprop
     def back(self):
-        self.loss = error(self.aouts[2], self.y)
+        self.loss = error(self.aouts[self.connections-1], self.y)
 
-        a3_delta = cross(self.aouts[2], self.y)         # gradient for layer 3->2
-        z2_delta = np.dot(a3_delta, self.ws[2].T)
-        a2_delta = z2_delta * dsig(self.aouts[1])       # gradient for layer 2->1
-        z1_delta = np.dot(a2_delta, self.ws[1].T)
-        a1_delta = z1_delta * dsig(self.aouts[0])       # gradient for layer 1->in
+        adjustments = [[]] * 3
 
-        # calculate weight and bias adjustments
-        adjustments = [(self.lr * np.dot(self.x.T, a1_delta),  self.lr * np.sum(a1_delta, axis=0)),
-                       (self.lr * np.dot(self.aouts[0].T, a2_delta), self.lr * np.sum(a2_delta, axis=0)),
-                       (self.lr * np.dot(self.aouts[1].T, a3_delta), self.lr * np.sum(a3_delta, axis=0))]
+        # calculate gradients
+        for i in range(self.connections-1, -1, -1):
+            if i == self.connections-1:
+                self.das[i] = cross(self.aouts[i], self.y)
+            else:
+                self.dzs[i] = np.dot(self.das[i+1], self.ws[i+1].T)
+                self.das[i] = self.dzs[i] * dsig(self.aouts[i])
+            if i != 0:
+                adjustments[i] = self.lr * np.dot(self.aouts[i-1].T, self.das[i]), self.lr * np.sum(self.das[i], axis=0)
+            else:
+                adjustments[i] = self.lr * np.dot(self.x.T, self.das[0]),  self.lr * np.sum(self.das[0], axis=0)
 
         # adjust
         for w,b,a in zip(self.ws, self.bs, adjustments):
