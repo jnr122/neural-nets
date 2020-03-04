@@ -68,8 +68,8 @@ class Net:
 #############################
 #    START AUXILIARY FUNCS
 #
-def sig(outs): return 1 / (1 + np.exp(-outs))                # sigmoid
-def dsig(outs): return outs * (1 - outs)                        # sigmoid deriv
+def sig(outs): return 1 / (1 + np.exp(-outs))          # sigmoid
+def dsig(outs): return outs * (1 - outs)               # sigmoid deriv
 def cross(pre, act): return (pre - act) / act.shape[0] # compute error by cost over num elements
 
 
