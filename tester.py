@@ -19,7 +19,7 @@ def main():
 
     # collect data and split with sklearn
     # data types: "moons", "multi", "diabetes", "digit"
-    data_type = "multi"
+    data_type = "digit"
     features, labels = get_data(size, data_type)
     one_hot_target = pd.get_dummies(labels)
     train_x, x_val, train_y, y_val = train_test_split(features, one_hot_target, test_size=0.1, random_state=20)

@@ -16,7 +16,7 @@ class Net:
         self.connections = 3
 
         # store sizes and instances of weights and biases
-        self.w_sizes = [(self.x.shape[1],ls), (self.ls, self.ls), (self.ls, self.y.shape[1])]
+        self.w_sizes = [(self.x.shape[1], ls), (self.ls, self.ls), (self.ls, self.y.shape[1])]
         self.b_sizes = [(1, self.ls), (1, self.ls), (1, self.y.shape[1])]
         self.ws = []
         self.bs = []
@@ -47,7 +47,6 @@ class Net:
     # backprop
     def back(self):
         self.loss = error(self.aouts[self.connections-1], self.y)
-
         adjustments = [[]] * self.connections
 
         # calculate gradients
@@ -63,10 +62,10 @@ class Net:
             else:
                 adjustments[i] = self.lr * np.dot(self.x.T, self.das[0]),  self.lr * np.sum(self.das[0], axis=0)
 
-        # adjust
-        for w,b,a in zip(self.ws, self.bs, adjustments):
-            w -= a[0]
-            b -= a[1]
+            # adjust
+            self.ws[i] -= adjustments[i][0]
+            self.bs[i] -= adjustments[i][1]
+
 
     def predict(self, data):
         self.x = data
