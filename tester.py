@@ -14,7 +14,7 @@ def main():
     # hyperparams
     epochs = 2000
     lr = 0.02
-    ls = 128
+    ls = 180
     size = 1000
 
     # collect data and split with sklearn

@@ -24,7 +24,6 @@ class Net:
             self.ws.append(np.random.randn(w[0], w[1]))
             self.bs.append(np.zeros((b[0], b[1])))
 
-
     # training loop
     def train(self):
         for x in range(self.epochs):
@@ -46,19 +45,21 @@ class Net:
     def back(self):
         self.loss = error(self.a3, self.y)
 
-        a3_delta = cross(self.a3, self.y)        # adjustments for layer 3->2
+        a3_delta = cross(self.a3, self.y)         # gradient for layer 3->2
         z2_delta = np.dot(a3_delta, self.ws[2].T)
-        a2_delta = z2_delta * dsig(self.a2)      # adjustments for layer 2->1
+        a2_delta = z2_delta * dsig(self.a2)       # gradient for layer 2->1
         z1_delta = np.dot(a2_delta, self.ws[1].T)
-        a1_delta = z1_delta * dsig(self.a1)      # adjustments for layer 1
+        a1_delta = z1_delta * dsig(self.a1)       # gradient for layer 1
 
-        # tuning for layers
-        self.ws[2] -= self.lr * np.dot(self.a2.T, a3_delta)
-        self.bs[2] -= self.lr * np.sum(a3_delta, axis=0, keepdims=True)
-        self.ws[1] -= self.lr * np.dot(self.a1.T, a2_delta)
-        self.bs[1] -= self.lr * np.sum(a2_delta, axis=0)
-        self.ws[0] -= self.lr * np.dot(self.x.T, a1_delta)
-        self.bs[0] -= self.lr * np.sum(a1_delta, axis=0)
+        # calculate weight and bias adjustments
+        adjustments = [(self.lr * np.dot(self.x.T, a1_delta),  self.lr * np.sum(a1_delta, axis=0)),
+                       (self.lr * np.dot(self.a1.T, a2_delta), self.lr * np.sum(a2_delta, axis=0)),
+                       (self.lr * np.dot(self.a2.T, a3_delta), self.lr * np.sum(a3_delta, axis=0))]
+
+        # adjust
+        for w,b,a in zip(self.ws, self.bs, adjustments):
+            w -= a[0]
+            b -= a[1]
 
     def predict(self, data):
         self.x = data
